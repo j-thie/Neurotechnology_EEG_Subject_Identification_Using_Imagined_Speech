@@ -1,46 +1,26 @@
-#!/usr/bin/env python3
 """
-Fail-closed preprocessing for grouped within-subject imagined-speech decoding.
+Preprocesses raw EEGLAB data into structured inputs for within-subject imagined-speech decoding.
 
-This script creates the four arrays required by the strict decoder:
+This script outputs the four primary arrays required by the decoder:
+    X_raw.npy          - Trial data matrix of shape (trials, channels, samples)
+    y_id_encoded.npy   - Encoded subject identifiers of shape (trials,)
+    y_word.npy         - Categorical word labels of shape (trials,)
+    trial_group.npy    - Group labels of shape (trials,) used to enforce strict block/session CV split boundaries
 
-    X_raw.npy          (trials, channels, samples)
-    y_id_encoded.npy   (trials,)
-    y_word.npy         (trials,)
-    trial_group.npy    (trials,)
+Note: `trial_group.npy` defines independent acquisition blocks or sessions that must not cross-contaminate 
+training and testing sets. You must explicitly set `--group-mode` based on your data structure.
 
-`trial_group.npy` must identify an independently acquired run, block, or
-session that must stay wholly in either training or testing. The script does
-not infer that unit silently: choose --group-mode explicitly after inspecting
-the dataset layout.
 
-Typical workflow
-----------------
-1. Inspect paths, MATLAB keys, and EEGLAB annotations:
+Strict Validation & Integrity Checks
+------------------------------------
+To prevent data leakage,  or bad data from silently corrupting down-stream model training, 
+the execution will deliberately abort if it encounters any of the following anomalies:
+- Missing or ambiguous word-label keys or subject IDs.
+- Inconsistent sampling rates or channel selections across recordings.
+- Overlapping trial windows (violating window independence) or exact trial/file duplicates.
+- Mismatched array sizes breaking the one-to-one mapping between trial data and labels.
+- Insufficient independent blocks per subject (fewer than two groups), making cross-validation impossible.
 
-       python3 preprocess_word_decoder_grouped.py --inspect
-
-2. Run production preprocessing after verifying the label key and grouping:
-
-       python3 preprocess_word_decoder_grouped.py \
-           --word-label-key VERIFIED_KEY \
-           --group-mode set_file
-
-Use --group-mode set_file only when every .set file is a genuinely independent
-recording/run. Use parent_folder only when all .set files in one directory are
-parts or exports of the same acquisition session.
-
-Safety behavior
----------------
-The pipeline stops instead of guessing when:
-- the word-label key is missing or ambiguous;
-- subject IDs cannot be extracted unambiguously;
-- EEG channel sets or sampling frequencies differ;
-- fixed-length trial windows overlap;
-- exact recording or trial duplicates are found;
-- trial windows and labels are not aligned one-to-one;
-- fewer than two independent groups exist for a subject (configurable); or
-- a group mixes multiple participants.
 """
 
 from __future__ import annotations
@@ -61,9 +41,9 @@ from scipy.io.matlab import mat_struct
 from sklearn.preprocessing import LabelEncoder
 
 
-# =============================================================================
-# VERIFIED DEFAULTS — CLI arguments may override paths and label/group choices
-# =============================================================================
+
+# Verified Defaults
+
 
 DEFAULT_ROOT_DIR = Path("/path/to/kara_one_dataset")
 
@@ -73,9 +53,8 @@ TARGET_TIME_SAMPLES = 4000
 EXPECTED_EEG_CHANNELS = 62
 MATLAB_INDICES_ARE_ONE_BASED = True
 
-# Leave None unless you have verified the exact channel-name list. When None,
-# MNE must identify exactly EXPECTED_EEG_CHANNELS EEG channels in the first
-# recording; that exact ordered set is then required for every recording.
+
+
 CANONICAL_EEG_CHANNELS: list[str] | None = None
 
 # Strict safety defaults.
@@ -89,9 +68,9 @@ SUBJECT_PATTERN = re.compile(r"^(?:MM\d+|P\d+)$", re.IGNORECASE)
 mne.set_log_level("ERROR")
 
 
-# =============================================================================
-# CLI
-# =============================================================================
+
+# Command Line Interface
+
 
 
 def parse_args() -> argparse.Namespace:
@@ -168,9 +147,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-# =============================================================================
-# GENERAL HELPERS
-# =============================================================================
+# General Helpers
 
 
 def safe_name(value: str) -> str:
@@ -281,10 +258,8 @@ def describe_mat_keys(mat_data: dict[str, Any]) -> str:
     return "\n".join(lines) or "  <no user variables found>"
 
 
-# =============================================================================
-# MATLAB PARSING
-# =============================================================================
 
+# MATLAB Parsing
 
 def collect_numeric_values(value: Any) -> list[float]:
     values: list[float] = []
@@ -466,10 +441,8 @@ def extract_word_labels(
     return labels
 
 
-# =============================================================================
-# EEG HELPERS
-# =============================================================================
 
+# EEG Helpers 
 
 def select_and_validate_eeg_channels(
     raw: mne.io.BaseRaw,
@@ -529,10 +502,8 @@ def select_and_validate_eeg_channels(
     return eeg_matrix, list(canonical_names)
 
 
-# =============================================================================
-# INSPECTION MODE
-# =============================================================================
 
+# Inspection Mode
 
 def inspect_dataset(
     set_files: list[Path],
@@ -630,10 +601,8 @@ def inspect_dataset(
     )
 
 
-# =============================================================================
-# DATASET AUDITS
-# =============================================================================
 
+# Dataset Audits
 
 def audit_group_design(
     y_identity: np.ndarray,
@@ -770,10 +739,7 @@ def audit_label_schedule(
             )
 
 
-# =============================================================================
-# PRODUCTION PIPELINE
-# =============================================================================
-
+# Preprocressing and Validation Pipeline  
 
 def run_preprocessing(
     set_files: list[Path],
@@ -1169,10 +1135,7 @@ def run_preprocessing(
     )
 
 
-# =============================================================================
-# ENTRY POINT
-# =============================================================================
-
+# Script Orchestration and CLI Execution Flow
 
 def main() -> None:
     args = parse_args()
