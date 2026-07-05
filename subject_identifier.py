@@ -1,10 +1,9 @@
-#!/usr/bin/env python3
 """
 Closed-set EEG subject identification demo.
 
 Given one held-out EEG trial, predict which enrolled subject produced it.
 
-Required files
+Required files created from preprocressing_pipline.py:
 --------------
 X_raw.npy          shape: (trials, channels, samples)
 y_id_encoded.npy   shape: (trials,)
@@ -20,8 +19,8 @@ subject_identification_summary.csv
 subject_identification_predictions.csv
 subject_identification_report.txt
 subject_identification_confusion.csv
-subject_identification_breakdown.png  <- Per-subject prediction breakdown
-fold_performance_distribution.png     <- NEW: Distribution plot of fold metrics
+subject_identification_breakdown.png  
+fold_performance_distribution.png     
 subject_identifier_model.joblib
 subject_feature_metadata.npz
 """
@@ -50,11 +49,11 @@ from sklearn.metrics import (
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# ---------------------------------------------------------------------------
-# Configuration
-# ---------------------------------------------------------------------------
 
-BASE_OUTPUT_DIR = Path("/Users/jessicathiessen/Documents/Cognitive Systems/neurotech/subject_identification_results")
+# Configuration
+
+
+BASE_OUTPUT_DIR = Path("./subject_identification_results")
 
 X_FILE = "X_raw.npy"
 ENCODED_ID_FILE = "y_id_encoded.npy"
@@ -89,9 +88,8 @@ MODEL_FILE = "subject_identifier_model.joblib"
 FEATURE_METADATA_FILE = "subject_feature_metadata.npz"
 
 
-# ---------------------------------------------------------------------------
+
 # Loading and validation
-# ---------------------------------------------------------------------------
 
 def load_required_array(filename: str, allow_pickle: bool = False) -> np.ndarray:
     path = Path(filename)
@@ -146,9 +144,8 @@ def validate_inputs(X: np.ndarray, y_subject: np.ndarray) -> None:
         sys.exit("Trials contain too few samples for spectral analysis.")
 
 
-# ---------------------------------------------------------------------------
 # Features & Folds
-# ---------------------------------------------------------------------------
+
 
 def integrate_psd(psd: np.ndarray, frequencies: np.ndarray, mask: np.ndarray) -> np.ndarray:
     selected_frequencies = frequencies[mask]
@@ -261,9 +258,8 @@ def make_duplicate_safe_block_folds(X: np.ndarray, y_subject: np.ndarray, n_spli
     return fold_id, unique_groups_per_subject
 
 
-# ---------------------------------------------------------------------------
 # Visualizations
-# ---------------------------------------------------------------------------
+
 
 def save_subject_plots(matrix: np.ndarray, class_names: np.ndarray, save_path: Path) -> None:
     matrix_perc = (matrix.astype('float') / matrix.sum(axis=1)[:, np.newaxis]) * 100
@@ -322,9 +318,8 @@ def top_k_accuracy(y_true: np.ndarray, probabilities: np.ndarray, k: int) -> flo
     return float(np.mean([int(true_label) in row for true_label, row in zip(y_true, top_k)]))
 
 
-# ---------------------------------------------------------------------------
+
 # Main Routine
-# ---------------------------------------------------------------------------
 
 def main() -> None:
     print("Initializing EEG Subject Identifier...")
@@ -388,12 +383,12 @@ def main() -> None:
     report = classification_report(y_subject, oof_predictions, labels=np.arange(n_subjects), target_names=class_names, digits=3, zero_division=0)
     matrix = confusion_matrix(y_subject, oof_predictions, labels=np.arange(n_subjects))
 
-    # --- Generate Visual Charts ---
+    # - Generate Visual Charts -
     print("\nGenerating per-subject and cross-fold metric distribution graphs...")
     save_subject_plots(matrix, class_names, BASE_OUTPUT_DIR / BREAKDOWN_PNG)
     save_distribution_plot(fold_rows, BASE_OUTPUT_DIR / DISTRIBUTION_PNG)
 
-    # --- Save Reports and Metadata ---
+    # - Save Reports and Metadata -
     with open(BASE_OUTPUT_DIR / SUMMARY_CSV, "w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=["fold", "train_trials", "test_trials", "accuracy_pct", "balanced_accuracy_pct"])
         writer.writeheader()
@@ -435,7 +430,7 @@ def main() -> None:
 
     print("\nSaved:")
     print(f"  {BASE_OUTPUT_DIR / BREAKDOWN_PNG} (Per-Subject Performance Graph)")
-    print(f"  {BASE_OUTPUT_DIR / DISTRIBUTION_PNG} (NEW: Metric Cross-Fold Distribution Graph)")
+    print(f"  {BASE_OUTPUT_DIR / DISTRIBUTION_PNG} (Metric Cross-Fold Distribution Graph)")
     print(f"  {BASE_OUTPUT_DIR / SUMMARY_CSV}")
 
 
