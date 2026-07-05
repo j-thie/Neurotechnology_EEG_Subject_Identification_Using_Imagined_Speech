@@ -1,0 +1,29 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.so
+
+# Local environment and notebooks
+.ipynb_checkpoints/
+
+# Large data files and generated outputs
+*.npy
+*.npz
+*.csv
+*.png
+*.pdf
+*.joblib
+*.pkl
+*.mat
+*.set
+*.fdt
+*.edf
+*.vhdr
+*.vmrk
+
+# Logs and OS files
+*.log
+.DS_Store
+
+# Results folders
+subject_identification_results/
