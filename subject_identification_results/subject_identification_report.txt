@@ -1,0 +1,25 @@
+EEG SUBJECT IDENTIFICATION
+==========================
+OOF accuracy: 95.85%
+Balanced accuracy: 95.93%
+
+              precision    recall  f1-score   support
+
+   subject_0      1.000     1.000     1.000       330
+   subject_1      0.960     1.000     0.979       262
+   subject_2      0.854     0.977     0.912       264
+   subject_3      1.000     0.977     0.989       264
+   subject_4      1.000     0.992     0.996       264
+   subject_5      0.978     1.000     0.989       264
+   subject_6      0.875     0.795     0.833       264
+   subject_7      1.000     0.939     0.969       132
+   subject_8      1.000     1.000     1.000       132
+   subject_9      1.000     1.000     1.000       132
+  subject_10      0.957     1.000     0.978       132
+  subject_11      0.934     0.864     0.898       132
+  subject_12      0.985     0.970     0.977       132
+  subject_13      0.941     0.915     0.928       330
+
+    accuracy                          0.958      3034
+   macro avg      0.963     0.959     0.960      3034
+weighted avg      0.959     0.958     0.958      3034
