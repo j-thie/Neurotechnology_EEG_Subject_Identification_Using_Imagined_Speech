@@ -65,10 +65,8 @@ from sklearn.preprocessing import LabelEncoder
 # VERIFIED DEFAULTS — CLI arguments may override paths and label/group choices
 # =============================================================================
 
-DEFAULT_ROOT_DIR = Path(
-    "/Users/jessicathiessen/Documents/Cognitive Systems/"
-    "neurotech/KARA_datatset"
-)
+DEFAULT_ROOT_DIR = Path("/path/to/kara_one_dataset")
+
 DEFAULT_OUTPUT_DIR = DEFAULT_ROOT_DIR / "word_decoder_inputs"
 
 TARGET_TIME_SAMPLES = 4000
@@ -699,7 +697,7 @@ def audit_group_design(
         )
         if require_all_words_per_group:
             raise RuntimeError(message)
-        print(f"⚠️ {message}")
+        print(f"{message}")
         print(
             "   Leave-one-group-out folds may have missing test classes. "
             "Stratified grouped folds may be more appropriate when several "
@@ -765,7 +763,7 @@ def audit_label_schedule(
         )
         if mean_phase_accuracy >= 0.90:
             print(
-                "⚠️ Word identity is highly predictable from within-recording "
+                "Word identity is highly predictable from within-recording "
                 "trial order. This is an experimental-schedule confound. Keep "
                 "entire runs/sessions out of training and do not use trial "
                 "index as a neural feature."
@@ -1156,7 +1154,7 @@ def run_preprocessing(
     ) as handle:
         json.dump(manifest, handle, indent=2)
 
-    print("\n✅ Saved grouped word-decoder inputs:")
+    print("\nSaved grouped word-decoder inputs:")
     for filename in arrays_to_save:
         print(f"  {output_dir / filename}")
     print(f"  {output_dir / 'preprocessing_metadata.csv'}")
