@@ -216,4 +216,7 @@ subject_feature_metadata.npz
 
 ## License
 
-No license has been specified for this repository.
+This repository is licensed under the MIT License.
+
+## Citation
+Zhao, S., & Rudzicz, F. (2015). *Classifying phonological categories in imagined and articulated speech*. In **Proceedings of ICASSP 2015** (pp. 992–996). https://doi.org/10.1109/ICASSP.2015.7178118
